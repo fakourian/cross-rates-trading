@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corss Rates UNFXB</title>
+
+    <style>
+        .empty-cell {
+            background-color: #787b861a;
+        }
+        #chart_table {
+            border: solid 1px #ccc;
+            border-radius: 5px;
+        }
+        #main_div {
+            display: flex;
+            justify-content: center;
+        }
+        th {
+            min-width: 70px;
+            border: solid 0.5px #787b861a;
+            padding: 10px;
+
+            width: 20px;
+        }
+
+        td {
+            min-width: 70px;
+            border: solid 0.5px #787b861a;
+            padding: 10px;
+            text-align: center;
+            background-color: #fff;
+            transition: background-color 1s ease;
+            transition: color 0.5s ease;
+        }
+
+        .no-change {
+            font-weight: 400;
+            background-color: #f8f8f8;
+            color: rgb(77, 77, 77);;
+        }
+
+        .growed {
+            background-color: #08995024;
+            
+            font-weight: 700;
+        }
+
+        .reduced {
+            background-color: #f236451a;
+            color: black;
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="main_div">
+        <table id="chart_table">
+            <tbody id="chart_body">
+                <!--everything goes here-->
+            </tbody>
+        </table>
+    </div>
+
+
+    <script>
+
+        var symbols = ['EUR', 'USD', 'JPY', 'GBP', 'CHF', 'AUD', 'CAD', 'NZD'];
+
+        let ws = new WebSocket('ws://95.217.228.239:8585/GetTickSymbols');
+
+        ws.addEventListener("open", (event) => {
+            console.log('UNFXB connected !');
+        });
+
+        ws.addEventListener("error", (event) => {
+            console.log("WebSocket error: ", event);
+        });
+
+        ws.addEventListener("message", (event) => {
+            console.log(event);
+            parseDataFields(event.data);
+        });
+
+        window.addEventListener('DOMContentLoaded', function () {
+            initiateDesign();
+        });
+
+        // this function is for parsing the data fields from the websocket 
+        function parseDataFields(_json) {
+            let Json_data = JSON.parse(_json);
+            let target_section = document.getElementById(Json_data.Symbol);
+            target_section.classList.remove(...target_section.classList);
+            if (target_section.innerText == Json_data.Bid)
+                target_section.classList.add('no-change');
+            else if (target_section.innerText > Json_data.Bid)
+                target_section.classList.add('reduced');
+            else
+                target_section.classList.add('growed');
+
+            target_section.innerText = Json_data.Bid;
+        }
+
+        // this function is for basic setup prop trading table draw   
+        function initiateDesign() {
+            let table_body = document.getElementById('chart_body');
+            for (i = 0; i <= symbols.length; i++) {
+                var table_row = document.createElement("tr");
+                for (j = 0; j <= symbols.length; j++) {
+
+                    var tabled = (j == 0 || i == 0) ? document.createElement("th") : document.createElement("td");
+
+                    if (i != j) {
+                        tabled.id = (i == 0 || j == 0) ? symbols[j - 1] : symbols[(i == 0) ? i : i - 1] + symbols[j - 1];
+                        if (j == 0) tabled.id = symbols[i - 1];
+
+                        tabled.textContent = i;
+
+                    }
+                    if (i > 0 && j == 0)
+                        tabled.textContent = symbols[i - 1];
+                    if (i == 0 && j != 0)
+                        tabled.textContent = symbols[j - 1];
+                    if (i == j)
+                        tabled.classList.add('empty-cell')
+
+                    table_row.appendChild(tabled)
+
+                }
+
+                table_body.appendChild(table_row);
+            }
+
+        }
+
+
+        // this function is for datasetting into the tables
+        function injectData() {
+
+        }
+
+
+
+    </script>
+</body>
+
+</html>
